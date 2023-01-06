@@ -139,10 +139,12 @@
         ctx.fillText(`Score: ${score} Best: ${bestScore}`, 16, 26);
 
         tick++;
+
+        requestAnimationFrame(render);
       }
 
       setup();
-      setInterval(render, 16);
+      render();
 
       c.onclick = () => playing ? vSpeed = jumpSpeed : playing = 1;
     </script>
