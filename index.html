@@ -3,19 +3,18 @@
     <canvas style="height:96%;position:fixed;top:50%;left:50%;transform:translate3d(-50%,-50%,0)" id="c" width="360" height="640"></canvas>
     <script>
       let ctx = c.getContext('2d');
-      ctx.font = '16px monospace';
+      ctx.font = '16px courier';
       ctx.lineWidth = 2;
 
       // for minification
-      let canvasHeight = c.height;
-      let canvasWidth = c.width;
+      let height = c.height;
 
-      /**
-       * I use the functions quite often and 
-       * there is no way to minify the canvas ctx method
-       */
-      let fillRect = ctx.fillRect.bind(ctx); 
-      let fillStyle = c => ctx.fillStyle = '#' + c;
+      let callCtxMethod = (...args) => 
+        args.map((arg) => 
+          arg?.map 
+            ? ctx.fillRect(...arg) 
+            : ctx.fillStyle = '#' + arg
+        );
 
       let palette = { a: '000', b: 'fff', c: 'f71', d: 'f20', e: 'eec' };
 
@@ -30,46 +29,43 @@
       
       let tick = 0;
       let y, vSpeed, playing, score, pipes;
-      let hSpeed = 4.3;
-      let gravityAcceleration = .48;
-      let jumpSpeed = -11.54;
+      let hSpeed = 4;
+      let gravityAcceleration = .5;
+      let jumpSpeed = -12;
       let bestScore = 0;
-      let pipeWidth = 64;
-      let pipeGap = 220;
-      let pipeEdge = () => (Math.random() * ((canvasHeight - (pipeGap + pipeWidth)) - pipeWidth)) + pipeWidth;
+      let gate = () => Math.random() * 292 + 64;
 
       let draw = (t, x, y, w, i = 0) => {
         while (t.length) {
-          let c = t[0], times = +t[1]; // let's hope that one character is not repeated more than 9 times
-          let noTimes = times !== times;
-          fillStyle(palette[c]);
+          let c = t[0], times = +t[1], noTimes = times !== times; 
+          // let's hope that one character is not repeated more than 9 times
+          c in palette && callCtxMethod(palette[c]);
           t = t.slice(noTimes ? 1 : 2);
 
-          noTimes && fillRect(x + (i % w) * 2, y + ((i / w) | 0) * 2, 2, 2);
-
-          if (c === 'u' || noTimes) {
-            i += times || 1;
-            continue
+          if (c === 'u') {
+            i += (times || 1);
+            continue;
           }
 
-          let until = times + i;
+          let until = (times || 1) + i;
           for (; i < until; i++) {
-            fillRect(x + (i % w) * 2, y + ((i / w) | 0) * 2, 2, 2);
+            callCtxMethod([x + (i % w) * 2, y + ((i / w) | 0) * 2, 2, 2]);
           }
         }
       }
 
       let setup = () => {
         vSpeed = jumpSpeed;
-        playing = 0;
-        score = 0;
+        playing = score = 0;
         y = 308;
-        pipes = Array(2).fill().map((_, i) => [canvasWidth * 1.4 + (i * (pipeGap + pipeWidth)), pipeEdge()]);
+        pipes = [[504, gate()], [788, gate()]]
       }
 
       let render = () => {
-        fillStyle("0ac");
-        fillRect(0, 0, 360, 640);
+        callCtxMethod(
+          '0ac',
+          [0, 0, 360, 640]
+        );
         
         if (playing) {
           vSpeed += gravityAcceleration;
@@ -78,64 +74,66 @@
           pipes.map(pipe => {
             pipe[0] -= hSpeed;
 
-            let x = pipe[0];
-            fillStyle('1a0');
-            fillRect(x + 2, 0, pipeWidth - 2, canvasHeight);
-            
-            fillStyle('170');
-            fillRect(x + 52, 0, 12, canvasHeight);
+            let [px, py] = pipe;
 
-            fillStyle('1d0');
-            fillRect(x + 8, 0, 4, canvasHeight);
-            fillRect(x + 16, 0, 12, canvasHeight);
-            fillRect(x + 32, 0, 4, canvasHeight);
+            callCtxMethod(
+              '1a0',
+              [px + 2, 0, 62, height],
+              '170',
+              [px + 52, 0, 12, height],
+              '1d0',
+              [px + 8, 0, 4, height],
+              [px + 16, 0, 12, height],
+              [px + 32, 0, 4, height],
+              '000'
+            );
 
-            fillStyle('000');
-            ctx.strokeRect(x - 1, pipe[1] - 32, pipeWidth + 4, 32);
-            ctx.strokeRect(x - 1, pipe[1] + pipeGap + 1, pipeWidth + 4, 32);
+            ctx.strokeRect(px - 3, py - 32, 72, 32);
+            ctx.strokeRect(px - 3, py + 221, 72, 32);
 
-            fillRect(x, 0, 2, canvasHeight);
-            fillRect(x + pipeWidth, 0, 2, canvasHeight);
-            fillRect(x, pipe[1] + pipeGap, pipeWidth, 2);
-            fillRect(x, pipe[1] - 1, pipeWidth, 2);
+            callCtxMethod(
+              [px, 0, 2, height],
+              [px + 64, 0, 2, height],
+              [px, py + 220, 64, 2],
+              [px, py - 1, 64, 2],
+              '1a0',
+              [px - 2, py - 31, 4, 30],
+              [px - 2, py + 222, 4, 30],
+              '170',
+              [px + 64, py - 31, 4, 30],
+              [px + 62, py + 222, 6, 30],
+              '0ac',
+              [px - 1, py + 1, 68, 219]
+            );
 
-            fillStyle('0ac');
-            fillRect(x - 1, pipe[1] + 1, pipeWidth + 4, pipeGap - 1);
-
-            if (x < -pipeWidth) {
+            if (px < -64) {
               score++;
-              bestScore = Math.max(bestScore, score);
-              pipes = [...pipes.slice(1), [pipes[1][0] + pipeGap + pipeWidth, pipeEdge()]];
+              bestScore = score > bestScore ? score : bestScore;
+              pipes = [...pipes.slice(1), [pipes[1][0] + 284, gate()]];
             }
           })
 
-          let [firstPipe] = pipes;
+          let [[px, py]] = pipes;
 
-          if ((
-            firstPipe[0] < canvasWidth / 2 + 18 && 
-            firstPipe[0] + pipeWidth > canvasWidth / 2 - 18 &&
-            (y < firstPipe[1] || firstPipe[1] + pipeGap < y + 32)
-          ) || (
-            y < 0 || y > 616
-          )) {
+          if ((px < 198 && px > 98 && (y < py || py + 188 < y)) || (y < 0 || y > 616)) {
             setup();
           }
         } else {
-          fillStyle('fff');
+          callCtxMethod('fff');
           ctx.fillText(`Click to play`, 120, 370);
         }
 
         draw(bird, 164, y, 16, 5);
 
-        let wi = ((tick / 3) | 0) % 4;
+        let wingsPhase = ((tick / 4) | 0) % 4;
 
-        wi % 2 
+        wingsPhase % 2 
           ? draw(wing2, 162, y + 10, 7, 1) 
-          : wi === 0 
+          : wingsPhase === 0 
           ? draw(wing1, 162, y + 6, 7, 1) 
           : draw(wing3, 162, y + 12, 7, 1);
 
-        fillStyle('fff');
+        callCtxMethod('fff');
         ctx.fillText(`Score: ${score} Best: ${bestScore}`, 16, 26);
 
         tick++;

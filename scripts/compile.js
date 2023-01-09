@@ -27,6 +27,7 @@ writeFileSync(join(outDir, 'index.min.html'), minified);
 const b64 = Buffer.from(minified).toString('base64');
 const toEncode = `data:text/html;base64,${b64}`;
 
+console.log('Minified size is', minified.length, 'bytes');
 console.log('Output size is', toEncode.length, 'bytes');
 
 writeFileSync(join(outDir, 'b64.txt'), toEncode);
