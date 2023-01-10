@@ -9,12 +9,19 @@
       // for minification
       let height = c.height;
 
-      let callCtxMethod = (...args) => 
-        args.map((arg) => 
-          arg?.map 
-            ? ctx.fillRect(...arg) 
-            : ctx.fillStyle = '#' + arg
-        );
+      let ctxcall = (...args) => 
+        args.map((arg) => {
+          if (arg.map) {
+            let len = arg.length;
+
+            len == 5 && ctx.strokeRect(...arg.slice(1));
+            len == 3 && ctx.fillText(...arg);
+            len == 4 && ctx.fillRect(...arg);
+          } else {
+            ctx.fillStyle = '#' + arg
+          }
+        }
+      );
 
       let palette = { a: '000', b: 'fff', c: 'f71', d: 'f20', e: 'eec' };
 
@@ -39,18 +46,16 @@
         while (t.length) {
           let c = t[0], times = +t[1], noTimes = times !== times; 
           // let's hope that one character is not repeated more than 9 times
-          c in palette && callCtxMethod(palette[c]);
+          c in palette && ctxcall(palette[c]);
           t = t.slice(noTimes ? 1 : 2);
 
-          if (c === 'u') {
+          if (c == 'u') {
             i += (times || 1);
             continue;
           }
 
           let until = (times || 1) + i;
-          for (; i < until; i++) {
-            callCtxMethod([x + (i % w) * 2, y + ((i / w) | 0) * 2, 2, 2]);
-          }
+          for (; i < until; i++) ctxcall([x + (i % w) * 2, y + ((i / w) | 0) * 2, 2, 2]);
         }
       }
 
@@ -62,10 +67,7 @@
       }
 
       let render = () => {
-        callCtxMethod(
-          '0ac',
-          [0, 0, 360, 640]
-        );
+        ctxcall('0ac', [0, 0, 360, 640]);
         
         if (playing) {
           vSpeed += gravityAcceleration;
@@ -76,7 +78,7 @@
 
             let [px, py] = pipe;
 
-            callCtxMethod(
+            ctxcall(
               '1a0',
               [px + 2, 0, 62, height],
               '170',
@@ -85,13 +87,9 @@
               [px + 8, 0, 4, height],
               [px + 16, 0, 12, height],
               [px + 32, 0, 4, height],
-              '000'
-            );
-
-            ctx.strokeRect(px - 3, py - 32, 72, 32);
-            ctx.strokeRect(px - 3, py + 221, 72, 32);
-
-            callCtxMethod(
+              '000',
+              [, px - 3, py - 32, 72, 32],
+              [, px - 3, py + 221, 72, 32],
               [px, 0, 2, height],
               [px + 64, 0, 2, height],
               [px, py + 220, 64, 2],
@@ -119,8 +117,7 @@
             setup();
           }
         } else {
-          callCtxMethod('fff');
-          ctx.fillText(`Click to play`, 120, 370);
+          ctxcall('fff', [`Click to play`, 120, 370]);
         }
 
         draw(bird, 164, y, 16, 5);
@@ -129,15 +126,12 @@
 
         wingsPhase % 2 
           ? draw(wing2, 162, y + 10, 7, 1) 
-          : wingsPhase === 0 
+          : wingsPhase == 0 
           ? draw(wing1, 162, y + 6, 7, 1) 
           : draw(wing3, 162, y + 12, 7, 1);
 
-        callCtxMethod('fff');
-        ctx.fillText(`Score: ${score} Best: ${bestScore}`, 16, 26);
-
+        ctxcall('fff', [`Score: ${score} Best: ${bestScore}`, 16, 26]);
         tick++;
-
         requestAnimationFrame(render);
       }
 
