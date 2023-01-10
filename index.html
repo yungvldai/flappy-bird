@@ -3,14 +3,17 @@
     <canvas style="height:96%;position:fixed;top:50%;left:50%;transform:translate3d(-50%,-50%,0)" id="c" width="360" height="640"></canvas>
     <script>
       let ctx = c.getContext('2d');
-      ctx.font = '16px courier';
+      ctx.textAlign = 'center';
 
       // for minification
       let height = c.height;
       let palette = { a: '000', b: 'fff', c: 'f71', d: 'f20', e: 'eec', f: '170', g: '1a0', h: '1d0', i: '0ac' };
 
       let fillRect = ctx.fillRect.bind(ctx);
-      let fillText = ctx.fillText.bind(ctx);
+      let fillText = (text, y, size = 16, x = 180) => {
+        ctx.font = size + 'px courier';
+        ctx.fillText(text, x, y);
+      }
       let fillStyle = (code) => ctx.fillStyle = '#' + palette[code];
 
       /*
@@ -24,33 +27,33 @@
       let pipeTexture = 'g6h4g4h9h3g4h4g9g4f9f3';
       let widePipeTexture = 'g3' + pipeTexture + 'f3';
       
+      let y, vSpeed, score, pipes, playing;
+      let played = 0;
       let tick = 0;
-      let y, vSpeed, playing, score, pipes;
       let hSpeed = 4;
       let gravityAcceleration = .5;
       let jumpSpeed = -12;
       let bestScore = 0;
-      let gate = () => Math.random() * 292 + 64;
+      let gate = () => (Math.random() * 292 + 64) | 0;
 
       let draw = (t, x, y, w, i = 0, pw = 2, ph = 2) => {
         while (t.length) {
-          let c = t[0], times = +t[1], noTimes = times !== times; 
+          let c = t[0], times = +t[1]; 
           fillStyle(c);
-          t = t.slice(noTimes ? 1 : 2);
+          t = t.slice(times !== times ? 1 : 2);
 
           if (c == 'u') {
             i += (times || 1);
-            continue;
+          } else {
+            let until = (times || 1) + i;
+            for (; i < until; i++) fillRect(x + (i % w) * pw, y + ((i / w) | 0) * pw, pw, ph);
           }
-
-          let until = (times || 1) + i;
-          for (; i < until; i++) fillRect(x + (i % w) * pw, y + ((i / w) | 0) * pw, pw, ph);
         }
       }
 
       let setup = () => {
         vSpeed = jumpSpeed;
-        playing = score = 0;
+        score = playing = 0;
         y = 308;
         pipes = [[504, gate()], [788, gate()]];
       }
@@ -85,7 +88,9 @@
 
           let [[px, py]] = pipes;
 
-          ((px < 198 && px > 98 && (y < py || py + 188 < y)) || (y < 0 || y > 616)) && setup();
+          if ((px < 198 && px > 98 && (y < py || py + 188 < y)) || (y < 0 || y > 616)) {
+            setup();
+          }
         }
 
         draw(birdTexture, 164, y, 16, 5);
@@ -99,8 +104,14 @@
           : draw(wing3Texture, 162, y + 12, 7, 1);
 
         fillStyle('b');
-        fillText(`Score: ${score} Best: ${bestScore}`, 16, 26);
-        !playing && fillText(`Click to play`, 120, 370);
+        fillText(`Score: ${score} | Best: ${bestScore}`, 26);
+
+        if (!playing) {          
+          fillText(played ? 'Game over' : 'Flappy bird', 210, 32);
+          fillText('Click to play' + (played ? ' again' : ''), 430);
+
+          !played && fillText('QR code edition', 230, 12, 246);
+        }
 
         tick++;
         requestAnimationFrame(render);
@@ -109,7 +120,10 @@
       setup();
       render();
 
-      c.onclick = () => playing ? vSpeed = jumpSpeed : playing = 1;
+      c.onclick = () => { 
+        vSpeed = jumpSpeed;
+        playing = played = 1;
+      }
     </script>
   </body>
 </html>
