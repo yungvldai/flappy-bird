@@ -8,31 +8,24 @@
 
       // for minification
       let height = c.height;
+      let palette = { a: '000', b: 'fff', c: 'f71', d: 'f20', e: 'eec', f: '170', g: '1a0', h: '1d0', i: '0ac' };
 
-      let ctxcall = (...args) => 
-        args.map((arg) => {
-          if (arg.map) {
-            let len = arg.length;
+      let fillRect = ctx.fillRect.bind(ctx);
+      let fillText = ctx.fillText.bind(ctx);
+      let strokeRect = ctx.strokeRect.bind(ctx);
+      let fillStyle = (code) => ctx.fillStyle = '#' + palette[code];
 
-            len == 5 && ctx.strokeRect(...arg.slice(1));
-            len == 3 && ctx.fillText(...arg);
-            len == 4 && ctx.fillRect(...arg);
-          } else {
-            ctx.fillStyle = '#' + arg
-          }
-        }
-      );
-
-      let palette = { a: '000', b: 'fff', c: 'f71', d: 'f20', e: 'eec' };
 
       /*
        * each pixel is coded with a color from the palette,
        * then RLE is applied to the entire string
        */
-      let bird = `a6u8a2c3ab2au6ac4ab4au4ac5ab3abau2ac6ab3abau2ac7ab4au2ac8a6uac7ad6auac5ada6u2ac6ad5au3a2c5a5u6a5`;
-      let wing1 = `a4u2ae4auae5a2e5auae3au3a3`;
-      let wing2 = `a5uae5a2e5aua5u`;
-      let wing3 = `a5uae5a2e4auae3au3a4`;
+      let birdTexture = `a6u8a2c3ab2au6ac4ab4au4ac5ab3abau2ac6ab3abau2ac7ab4au2ac8a6uac7ad6auac5ada6u2ac6ad5au3a2c5a5u6a5`;
+      let wing1Texture = `a4u2ae4auae5a2e5auae3au3a3`;
+      let wing2Texture = `a5uae5a2e5aua5u`;
+      let wing3Texture = `a5uae5a2e4auae3au3a4`;
+      let pipeTexture = 'g6h4g4h9h3g4h4g9g4f9f3';
+      let widePipeTexture = 'g3' + pipeTexture + 'f3';
       
       let tick = 0;
       let y, vSpeed, playing, score, pipes;
@@ -42,11 +35,12 @@
       let bestScore = 0;
       let gate = () => Math.random() * 292 + 64;
 
-      let draw = (t, x, y, w, i = 0) => {
+      let wrapper = (wrapper) => (str) => wrapper + str + wrapper;
+
+      let draw = (t, x, y, w, i = 0, pw = 2, ph = 2) => {
         while (t.length) {
           let c = t[0], times = +t[1], noTimes = times !== times; 
-          // let's hope that one character is not repeated more than 9 times
-          c in palette && ctxcall(palette[c]);
+          fillStyle(c);
           t = t.slice(noTimes ? 1 : 2);
 
           if (c == 'u') {
@@ -55,7 +49,7 @@
           }
 
           let until = (times || 1) + i;
-          for (; i < until; i++) ctxcall([x + (i % w) * 2, y + ((i / w) | 0) * 2, 2, 2]);
+          for (; i < until; i++) fillRect(x + (i % w) * pw, y + ((i / w) | 0) * pw, pw, ph);
         }
       }
 
@@ -63,11 +57,12 @@
         vSpeed = jumpSpeed;
         playing = score = 0;
         y = 308;
-        pipes = [[504, gate()], [788, gate()]]
+        pipes = [[504, gate()], [788, gate()]];
       }
 
       let render = () => {
-        ctxcall('0ac', [0, 0, 360, 640]);
+        fillStyle('i');
+        fillRect(0, 0, 360, 640);
         
         if (playing) {
           vSpeed += gravityAcceleration;
@@ -78,31 +73,16 @@
 
             let [px, py] = pipe;
 
-            ctxcall(
-              '1a0',
-              [px + 2, 0, 62, height],
-              '170',
-              [px + 52, 0, 12, height],
-              '1d0',
-              [px + 8, 0, 4, height],
-              [px + 16, 0, 12, height],
-              [px + 32, 0, 4, height],
-              '000',
-              [, px - 3, py - 32, 72, 32],
-              [, px - 3, py + 221, 72, 32],
-              [px, 0, 2, height],
-              [px + 64, 0, 2, height],
-              [px, py + 220, 64, 2],
-              [px, py - 1, 64, 2],
-              '1a0',
-              [px - 2, py - 31, 4, 30],
-              [px - 2, py + 222, 4, 30],
-              '170',
-              [px + 64, py - 31, 4, 30],
-              [px + 62, py + 222, 6, 30],
-              '0ac',
-              [px - 1, py + 1, 68, 219]
-            );
+            let wrap = wrapper('a2');
+            draw(wrap(pipeTexture), px, 0, 64, 0, 1, height);
+            draw(wrap(widePipeTexture), px - 3, py - 32, 70, 0, 1, 32);
+            draw(wrap(widePipeTexture), px - 3, py + 220, 70, 0, 1, 32);
+
+            fillStyle('i');
+            fillRect(px - 1, py, 68, 220);
+            fillStyle('a');
+            strokeRect(px - 2, py - 32, 67, 32);
+            strokeRect(px - 2, py + 221, 67, 32);
 
             if (px < -64) {
               score++;
@@ -116,21 +96,22 @@
           if ((px < 198 && px > 98 && (y < py || py + 188 < y)) || (y < 0 || y > 616)) {
             setup();
           }
-        } else {
-          ctxcall('fff', [`Click to play`, 120, 370]);
         }
 
-        draw(bird, 164, y, 16, 5);
+        draw(birdTexture, 164, y, 16, 5);
 
         let wingsPhase = ((tick / 4) | 0) % 4;
 
         wingsPhase % 2 
-          ? draw(wing2, 162, y + 10, 7, 1) 
-          : wingsPhase == 0 
-          ? draw(wing1, 162, y + 6, 7, 1) 
-          : draw(wing3, 162, y + 12, 7, 1);
+          ? draw(wing2Texture, 162, y + 10, 7, 1) 
+          : !wingsPhase
+          ? draw(wing1Texture, 162, y + 6, 7, 1) 
+          : draw(wing3Texture, 162, y + 12, 7, 1);
 
-        ctxcall('fff', [`Score: ${score} Best: ${bestScore}`, 16, 26]);
+        fillStyle('b');
+        fillText(`Score: ${score} Best: ${bestScore}`, 16, 26);
+        !playing && fillText(`Click to play`, 120, 370);
+
         tick++;
         requestAnimationFrame(render);
       }

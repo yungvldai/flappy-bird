@@ -11,7 +11,7 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 const input = readFileSync(resolve(__dirname, '../index.html'), { encoding: 'utf-8' });
 
-console.log('Original size is', kb(input.length), 'KB');
+console.log('Original size is', kb(input.length), 'KB', `(${input.length} bytes)`);
 
 const minified = minify(input, {
   collapseWhitespace: true,
@@ -23,7 +23,7 @@ const minified = minify(input, {
   }
 });
 
-console.log('Minified size is', kb(minified.length), 'KB');
+console.log('Minified size is', kb(minified.length), 'KB', `(${minified.length} bytes)`);
 
 const outDir = resolve(__dirname, '../output');
 
@@ -33,7 +33,7 @@ writeFileSync(join(outDir, 'index.min.html'), minified);
 const b64 = Buffer.from(minified).toString('base64');
 const output = `data:text/html;base64,${b64}`;
 
-console.log('b64 size is', kb(output.length), 'KB');
+console.log('b64 size is', kb(output.length), 'KB', `(${output.length} bytes)`);
 
 writeFileSync(join(outDir, 'b64.txt'), output);
 toFile(join(outDir, 'image.png'), output);
