@@ -4,7 +4,6 @@
     <script>
       let ctx = c.getContext('2d');
       ctx.font = '16px courier';
-      ctx.lineWidth = 2;
 
       // for minification
       let height = c.height;
@@ -12,9 +11,7 @@
 
       let fillRect = ctx.fillRect.bind(ctx);
       let fillText = ctx.fillText.bind(ctx);
-      let strokeRect = ctx.strokeRect.bind(ctx);
       let fillStyle = (code) => ctx.fillStyle = '#' + palette[code];
-
 
       /*
        * each pixel is coded with a color from the palette,
@@ -34,8 +31,6 @@
       let jumpSpeed = -12;
       let bestScore = 0;
       let gate = () => Math.random() * 292 + 64;
-
-      let wrapper = (wrapper) => (str) => wrapper + str + wrapper;
 
       let draw = (t, x, y, w, i = 0, pw = 2, ph = 2) => {
         while (t.length) {
@@ -73,16 +68,13 @@
 
             let [px, py] = pipe;
 
-            let wrap = wrapper('a2');
-            draw(wrap(pipeTexture), px, 0, 64, 0, 1, height);
-            draw(wrap(widePipeTexture), px - 3, py - 32, 70, 0, 1, 32);
-            draw(wrap(widePipeTexture), px - 3, py + 220, 70, 0, 1, 32);
-
-            fillStyle('i');
-            fillRect(px - 1, py, 68, 220);
+            draw('a2' + pipeTexture + 'a2', px, 0, 64, 0, 1, height);
             fillStyle('a');
-            strokeRect(px - 2, py - 32, 67, 32);
-            strokeRect(px - 2, py + 221, 67, 32);
+            fillRect(px - 3, py - 32, 69, 284);
+            draw(widePipeTexture, px - 1, py - 30, 66, 0, 1, 28);
+            draw(widePipeTexture, px - 1, py + 222, 66, 0, 1, 28);
+            fillStyle('i');
+            fillRect(px - 3, py, 69, 220);
 
             if (px < -64) {
               score++;
@@ -93,9 +85,7 @@
 
           let [[px, py]] = pipes;
 
-          if ((px < 198 && px > 98 && (y < py || py + 188 < y)) || (y < 0 || y > 616)) {
-            setup();
-          }
+          ((px < 198 && px > 98 && (y < py || py + 188 < y)) || (y < 0 || y > 616)) && setup();
         }
 
         draw(birdTexture, 164, y, 16, 5);
