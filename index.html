@@ -42,12 +42,8 @@
           fillStyle(c);
           t = t.slice(times !== times ? 1 : 2);
 
-          if (c == 'u') {
-            i += (times || 1);
-          } else {
-            let until = (times || 1) + i;
-            for (; i < until; i++) fillRect(x + (i % w) * pw, y + ((i / w) | 0) * pw, pw, ph);
-          }
+          if (c === 'u') i += (times || 1);
+          else for (let until = (times || 1) + i; i < until; i++) fillRect(x + (i % w) * pw, y + ((i / w) | 0) * pw, pw, ph);
         }
       }
 
