@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "compile": "node ./scripts/compile.js"
+    "build": "node ./scripts/build.js"
   },
   "author": {
     "name": "Vlad Ivanov",
