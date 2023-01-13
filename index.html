@@ -32,7 +32,7 @@
       let tick = 0;
       let hSpeed = 4;
       let gravityAcceleration = .5;
-      let jumpSpeed = -12;
+      let flyUpSpeed = -12;
       let bestScore = 0;
       let gate = () => (Math.random() * 292 + 64) | 0;
 
@@ -48,7 +48,7 @@
       }
 
       let setup = () => {
-        vSpeed = jumpSpeed;
+        vSpeed = flyUpSpeed;
         score = playing = 0;
         y = 308;
         pipes = [[504, gate()], [788, gate()]];
@@ -117,7 +117,7 @@
       render();
 
       c.onclick = () => { 
-        vSpeed = jumpSpeed;
+        vSpeed = flyUpSpeed;
         playing = played = 1;
       }
     </script>
